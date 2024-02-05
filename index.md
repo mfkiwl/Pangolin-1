@@ -41,7 +41,7 @@ git clone --recursive https://github.com/stevenlovegrove/Pangolin.git
 
 ## Dependencies ##
 
-*Pangolin* is split into a few *components* so you can include just what you need. Most dependencies are *optional* so you can pick and mix for your needs. Rather than enforcing a particular package manager, you can use a simple [script](https://github.com/stevenlovegrove/Pangolin/blob/master/scripts/install_prerequisites.sh) to generate a list of (**required**, **recommended** or **all**) packages for installation for that manager (e.g. apt, port, brew, dnf, vcpkg):
+*Pangolin* is split into a few *components* so you can include just what you need. Most dependencies are *optional* so you can pick and mix for your needs. Rather than enforcing a particular package manager, you can use a simple [script](https://github.com/stevenlovegrove/Pangolin/blob/master/scripts/install_prerequisites.sh) to generate a list of (**required**, **recommended** or **all**) packages for installation for that manager (e.g. apt, port, brew, dnf, pacman, vcpkg):
 
 ```bash
 # See what package manager and packages are recommended
@@ -66,26 +66,32 @@ Pangolin does it's best to build something with what it gets, so dependencies wh
 ## Building ##
 
 Pangolin uses the CMake portable pre-build tool. To checkout and build pangolin in the
-directory 'build', execute the following at a shell (or the equivelent using a GUI):
+directory 'build', execute the following at a shell (or the equivalent using a GUI):
 
 ```bash
 # Get Pangolin
 cd ~/your_fav_code_directory
 git clone --recursive https://github.com/stevenlovegrove/Pangolin.git
-cd Pangolin 
+cd Pangolin
 
 # Install dependencies (as described above, or your preferred method)
 ./scripts/install_prerequisites.sh recommended
 
 # Configure and build
-mkdir build && cd build
-cmake ..
-cmake --build .
+cmake -B build
+cmake --build build
+
+# with Ninja for faster builds (sudo apt install ninja-build)
+cmake -B build -GNinja
+cmake --build build
 
 # GIVEME THE PYTHON STUFF!!!! (Check the output to verify selected python version)
-cmake --build . -t pypangolin_pip_install
+cmake --build build -t pypangolin_pip_install
 
 # Run me some tests! (Requires Catch2 which must be manually installed on Ubuntu.)
+cmake -B build -G Ninja -D BUILD_TESTS=ON
+cmake --build build
+cd build
 ctest
 ```
 
@@ -99,7 +105,7 @@ ctest
 
 #### With Python
 
-You have to be careful about what python version Pangolin has found and is attempting to link against. It will tell you during the `cmake ..` step and you can change it by explicitly telling it the python executable with `cmake -DPYTHON_EXECUTABLE=/path/to/python ..`or ``cmake -DPYTHON_EXECUTABLE=`which python3` `` to use the python accessed through the `python3` alias.
+You have to be careful about what python version Pangolin has found and is attempting to link against. It will tell you during the `cmake ..` step and you can change it by explicitly telling it the python executable with `cmake -DPython_EXECUTABLE=/path/to/python ..`or ``cmake -DPython_EXECUTABLE=`which python3` `` to use the python accessed through the `python3` alias.
 
 If python is found, the pypangolin module will be built with the default `all` target. A Python wheel can be built manually using the `pypangolin_wheel` target, and the wheel can be installed / uninstalled with `pypangolin_pip_install` and `pypangolin_pip_uninstall` targets.
 
@@ -142,6 +148,18 @@ To contribute to Pangolin, I would appreciate pull requests against the master b
 
 
 
+## Installing Pangolin(vcpkg) ##
+
+You can download and install pangolin using the [vcpkg](https://github.com/Microsoft/vcpkg) dependency manager:
+
+    git clone https://github.com/Microsoft/vcpkg.git
+    cd vcpkg
+    ./bootstrap-vcpkg.sh
+    ./vcpkg integrate install
+    ./vcpkg install pangolin
+
+The pangolin port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+
 ## Extensibility & Factories
 
 Pangolin uses an extensible factory mechanism for modularising video drivers, windowing backends and console interpreters. Concrete instances are instantiated from a particular factory using a URI string which identifies which factory to use and what parameters it should use. As strings, URI's are a useful mechanism for providing and validating configuration from an end user. The URI form is:
@@ -157,7 +175,7 @@ VideoViewer uvc:[size=640x480]///dev/video0
 VideoViewer flip://debayer:[tile=rggb,method=downsample]//file://~/somefile.pango
 ```
 
-Notice that for video, some modules support chaining to construct a simple filter graph. 
+Notice that for video, some modules support chaining to construct a simple filter graph.
 
 #### Window URI's
 
@@ -184,7 +202,7 @@ PANGOLIN_WINDOW_URI="default:[default_font_size=20]//" ./some_pangolin_app
 PANGOLIN_WINDOW_URI="default:[default_font=my_awesome_font.ttf,default_font_size=20]//" ./some_pangolin_app
 ```
 
-To use Pangolin in your applications whilst being conciencious of chaning fonts, you can query how long fonts or text are with:
+To use Pangolin in your applications whilst being conscientious of changing fonts, you can query how long fonts or text are with:
 
 ```C++
 #include <pangolin/display/default_font.h>
@@ -204,7 +222,7 @@ int func()
 
 Emscripten is a neat c++ compiler which can output javascript executable code. That's right, your Pangolin programs can run on the web, too!
 
-Follow Emscriptens instructions to install the SDK (summerized below):
+Follow Emscriptens instructions to install the SDK (summarized below):
 
 ```bash
 mkdir ~/tools && cd ~/tools
